@@ -33,11 +33,11 @@ pub fn to_string(el: Element(a)) -> String {
 }
 
 fn element(tag, attr, children) {
-  Element(dom.null(), tag, attr, children)
+  Element(dom.null_node(), tag, attr, children)
 }
 
 pub fn text(content: String) -> Element(msg) {
-  Text(dom.null(), content)
+  Text(dom.null_node(), content)
 }
 
 pub fn div(attrs: List(Attr(msg)), children: List(Element(msg))) -> Element(msg) {
@@ -107,8 +107,6 @@ pub fn morph(parent: Node, old: Element(a), new: Element(a)) -> Element(a) {
     }
   }
 }
-
-// TODO for the root node I should call morph children, so first time its an empty list and it gets appended, then its a single item list and gets replaced
 
 pub fn morph_children(
   parent: Node,

@@ -1,6 +1,5 @@
 import gleam/int
 import gleam/list
-import gleam/io
 import rustle
 import rustle/element.{button, div, p, text}
 import rustle/attr.{on_click}
