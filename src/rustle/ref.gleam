@@ -1,10 +1,5 @@
 pub type Ref(a)
 
-@external(javascript, "../rustle.ffi.mjs", "uid")
-pub fn uid() -> Int {
-  todo
-}
-
 @external(javascript, "../rustle.ffi.mjs", "ref_create")
 pub fn create(_value: a) -> Ref(a) {
   todo

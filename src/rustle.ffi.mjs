@@ -1,7 +1,5 @@
-let uid_counter = 0;
-export function uid() {
-    return uid_counter++
-}
+
+// ref functions
 
 export function ref_create(a) {
     return { value: a }
@@ -9,6 +7,12 @@ export function ref_create(a) {
 
 export function ref_update(ref, cb) {
     return ref.value = cb(ref.value)
+}
+
+// dom functions
+
+export function log(node) {
+    console.log(node)
 }
 
 export function dom_create_element(tag) {
@@ -57,8 +61,4 @@ export function dom_add_event_listener(node, key, value) {
 
 export function dom_remove_event_listener(node, key, value) {
     node.removeEventListener(key, value)
-}
-
-export function log(item) {
-    console.log(item)
 }
