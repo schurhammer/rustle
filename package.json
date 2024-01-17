@@ -1,0 +1,18 @@
+{
+  "name": "rustle",
+  "version": "1.0.0",
+  "description": "[![Package Version](https://img.shields.io/hexpm/v/rustle)](https://hex.pm/packages/rustle) [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/rustle/)",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "vite": "^5.0.11",
+    "vite-gleam": "^0.4.0"
+  }
+}
