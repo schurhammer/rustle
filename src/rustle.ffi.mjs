@@ -12,9 +12,7 @@ export function ref_update(ref, cb) {
 }
 
 export function dom_create_element(tag) {
-    /** @type {HTMLElement} */
-    const x = document.createElement(tag)
-    return x
+    return document.createElement(tag)
 }
 
 export function dom_create_text(content) {
@@ -43,6 +41,22 @@ export function dom_replace(parent, from, to) {
 
 export function dom_replace_content(node, content) {
     node.nodeValue = content;
+}
+
+export function dom_set_attribute(node, key, value) {
+    node.removeAttribute(key, value);
+}
+
+export function dom_remove_attribute(node, key) {
+    node.removeAttribute(key);
+}
+
+export function dom_add_event_listener(node, key, value) {
+    node.addEventListener(key, value)
+}
+
+export function dom_remove_event_listener(node, key, value) {
+    node.removeEventListener(key, value)
 }
 
 export function log(item) {

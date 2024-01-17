@@ -3,7 +3,8 @@ import gleam/string
 import gleam/list
 import rustle/dom.{type Node}
 
-// id is used for mapping the vdom element to the real dom
+// TODO perhaps I should have a separate "DOM Element" type and remove the
+// dom node from this type, then I don't have to use a null dom node.
 pub type Element(msg) {
   Text(node: Node, content: String)
   Element(
@@ -48,6 +49,13 @@ pub fn p(attrs: List(Attr(msg)), children: List(Element(msg))) -> Element(msg) {
   element("p", attrs, children)
 }
 
+pub fn button(
+  attrs: List(Attr(msg)),
+  children: List(Element(msg)),
+) -> Element(msg) {
+  element("button", attrs, children)
+}
+
 pub fn none() {
   element("$", [], [])
 }
@@ -67,7 +75,22 @@ fn build_element(new: Element(a)) -> Element(a) {
   }
 }
 
-pub fn morph(parent: Node, old: Element(a), new: Element(a)) -> Element(a) {
+pub fn morph_attr(
+  node: Node,
+  os: List(Attr(msg)),
+  ns: List(Attr(msg)),
+) -> List(Attr(msg)) {
+  // TODO could make this order independent, maybe by sorting by key
+  case os, ns {
+    [], [] -> []
+    [], [n, ..ns] -> todo
+    [o, ..os], [] -> todo
+    [o, ..os], [n, ..ns] -> todo
+  }
+  ns
+}
+
+fn morph_element(parent: Node, old: Element(a), new: Element(a)) -> Element(a) {
   case old, new {
     Text(a_node, a_content), Text(_, b_content) ->
       case a_content == b_content {
@@ -87,6 +110,7 @@ pub fn morph(parent: Node, old: Element(a), new: Element(a)) -> Element(a) {
       case a_tag == b_tag {
         True -> {
           let children = morph_children(a_node, a_children, b_children)
+          let attr = morph_attr(a_node, a_attr, b_attr)
           Element(a_node, a_tag, a_attr, children)
         }
         False -> {
@@ -108,7 +132,7 @@ pub fn morph(parent: Node, old: Element(a), new: Element(a)) -> Element(a) {
   }
 }
 
-pub fn morph_children(
+fn morph_children(
   parent: Node,
   os: List(Element(a)),
   ns: List(Element(a)),
@@ -126,15 +150,12 @@ pub fn morph_children(
       morph_children(parent, os, ns)
     }
     [o, ..os], [n, ..ns] -> {
-      let n = morph(parent, o, n)
+      let n = morph_element(parent, o, n)
       [n, ..morph_children(parent, os, ns)]
     }
   }
 }
 
-pub fn button(
-  attrs: List(Attr(msg)),
-  children: List(Element(msg)),
-) -> Element(msg) {
-  element("button", attrs, children)
+pub fn update_dom(root: Node, os: List(Element(a)), ns: List(Element(a))) {
+  morph_children(root, os, ns)
 }

@@ -43,7 +43,7 @@ fn tick(
     let State(model, old) = state
     let model = run_command(app, model, cmd)
     let new = app.view(model)
-    let new = element.morph_children(root, old, [new])
+    let new = element.update_dom(root, old, [new])
     State(model, new)
   })
   Nil
