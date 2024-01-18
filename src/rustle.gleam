@@ -40,11 +40,13 @@ fn tick(
   root: dom.Node,
 ) {
   ref.update(ref, fn(state) {
-    let State(model, old) = state
+    let State(model, dom) = state
     let model = run_command(app, model, cmd)
-    let new = app.view(model)
-    let new = element.update_dom(root, old, [new])
-    State(model, new)
+    let dom =
+      element.update_dom(root, dom, [app.view(model)], fn(msg) {
+        tick(ref, app, Cmd(msg), root)
+      })
+    State(model, dom)
   })
   Nil
 }

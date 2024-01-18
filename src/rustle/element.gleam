@@ -18,7 +18,7 @@ pub type Element(msg) {
 fn attr_string(attr: Attr(a)) -> String {
   case attr {
     Attr(name, value) -> name <> "=" <> string.inspect(value)
-    Event(name, _) -> name
+    Event(name, _, _) -> name
   }
 }
 
@@ -75,58 +75,106 @@ fn build_element(new: Element(a)) -> Element(a) {
   }
 }
 
-pub fn morph_attr(
+fn set_attr(node: Node, n: Attr(a)) -> Nil {
+  case n {
+    Attr(name, value) -> dom.set_attribute(node, name, value)
+    Event(name, _, handler) -> dom.add_event_listener(node, name, handler)
+  }
+}
+
+fn remove_attr(node: Node, o: Attr(a)) -> Nil {
+  case o {
+    Attr(name, _) -> dom.remove_attribute(node, name)
+    Event(name, _, handler) -> dom.remove_event_listener(node, name, handler)
+  }
+}
+
+fn build_event_handler(n: Attr(msg), send: fn(msg) -> Nil) -> Attr(msg) {
+  case n {
+    Event(name, value, _) ->
+      Event(name, value, fn(x) {
+        let msg = value(x)
+        send(msg)
+      })
+    ns -> ns
+  }
+}
+
+fn morph_attr(
   node: Node,
   os: List(Attr(msg)),
   ns: List(Attr(msg)),
+  send: fn(msg) -> Nil,
 ) -> List(Attr(msg)) {
-  // TODO could make this order independent, maybe by sorting by key
   case os, ns {
     [], [] -> []
-    [], [n, ..ns] -> todo
-    [o, ..os], [] -> todo
-    [o, ..os], [n, ..ns] -> todo
+    [], [n, ..ns] -> {
+      let n = build_event_handler(n, send)
+      set_attr(node, n)
+      [n, ..morph_attr(node, os, ns, send)]
+    }
+    [o, ..os], [] -> {
+      remove_attr(node, o)
+      morph_attr(node, os, ns, send)
+    }
+    [o, ..os], [n, ..ns] -> {
+      let n = case o, n {
+        Attr(on, ov), Attr(nn, nv) if on == nn && ov == nv -> o
+        Event(on, ov, _), Event(nn, nv, _) if on == nn && ov == nv -> o
+        o, n -> {
+          remove_attr(node, o)
+          let n = build_event_handler(n, send)
+          set_attr(node, n)
+          n
+        }
+      }
+      [n, ..morph_attr(node, os, ns, send)]
+    }
   }
-  ns
 }
 
-fn morph_element(parent: Node, old: Element(a), new: Element(a)) -> Element(a) {
+fn morph_element(
+  parent: Node,
+  old: Element(a),
+  new: Element(a),
+  send: fn(a) -> Nil,
+) -> Element(a) {
   case old, new {
-    Text(a_node, a_content), Text(_, b_content) ->
-      case a_content == b_content {
+    Text(o_node, o_content), Text(_, n_content) ->
+      case o_content == n_content {
         True -> old
         False -> {
-          dom.replace_content(a_node, b_content)
-          Text(a_node, b_content)
+          dom.replace_content(o_node, n_content)
+          Text(o_node, n_content)
         }
       }
 
-    Element(a_node, a_tag, a_attr, a_children), Element(
+    Element(o_node, o_tag, o_attr, o_children), Element(
       _,
-      b_tag,
-      b_attr,
-      b_children,
+      n_tag,
+      n_attr,
+      n_children,
     ) as b ->
-      case a_tag == b_tag {
+      case o_tag == n_tag {
         True -> {
-          let children = morph_children(a_node, a_children, b_children)
-          let attr = morph_attr(a_node, a_attr, b_attr)
-          Element(a_node, a_tag, a_attr, children)
+          let children = morph_children(o_node, o_children, n_children, send)
+          let attr = morph_attr(o_node, o_attr, n_attr, send)
+          Element(o_node, o_tag, attr, children)
         }
         False -> {
           let b = build_element(b)
-          dom.replace(parent, a_node, b.node)
+          dom.replace(parent, o_node, b.node)
           b
         }
       }
-    Element(a_node, _, _, _), b -> {
+    Element(o_node, _, _, _), b -> {
       let b = build_element(b)
-      dom.replace(parent, a_node, b.node)
+      dom.replace(parent, o_node, b.node)
       b
     }
-    Text(a_node, _), b -> {
+    Text(o_node, _), b -> {
       let b = build_element(b)
-      dom.replace(parent, a_node, b.node)
+      dom.replace(parent, o_node, b.node)
       b
     }
   }
@@ -136,6 +184,7 @@ fn morph_children(
   parent: Node,
   os: List(Element(a)),
   ns: List(Element(a)),
+  send: fn(a) -> Nil,
 ) -> List(Element(a)) {
   // TODO make tail recursive
   case os, ns {
@@ -143,19 +192,24 @@ fn morph_children(
     [], [n, ..ns] -> {
       let n = build_element(n)
       dom.append(parent, n.node)
-      [n, ..morph_children(parent, os, ns)]
+      [n, ..morph_children(parent, os, ns, send)]
     }
     [o, ..os], [] -> {
       dom.remove(parent, o.node)
-      morph_children(parent, os, ns)
+      morph_children(parent, os, ns, send)
     }
     [o, ..os], [n, ..ns] -> {
-      let n = morph_element(parent, o, n)
-      [n, ..morph_children(parent, os, ns)]
+      let n = morph_element(parent, o, n, send)
+      [n, ..morph_children(parent, os, ns, send)]
     }
   }
 }
 
-pub fn update_dom(root: Node, os: List(Element(a)), ns: List(Element(a))) {
-  morph_children(root, os, ns)
+pub fn update_dom(
+  root: Node,
+  os: List(Element(a)),
+  ns: List(Element(a)),
+  send: fn(a) -> Nil,
+) {
+  morph_children(root, os, ns, send)
 }
