@@ -1,5 +1,6 @@
 import rustle/element.{type Element}
 import rustle/dom
+import rustle/vdom
 import rustle/ref.{type Ref}
 
 pub type App(flags, model, msg) {
@@ -30,7 +31,7 @@ fn run_command(
 }
 
 type State(model, msg) {
-  State(model, dom: List(Element(msg)))
+  State(model, dom: List(vdom.Element(msg)))
 }
 
 fn tick(
@@ -43,7 +44,7 @@ fn tick(
     let State(model, dom) = state
     let model = run_command(app, model, cmd)
     let dom =
-      element.update_dom(root, dom, [app.view(model)], fn(msg) {
+      vdom.patch_dom(root, dom, [app.view(model)], fn(msg) {
         tick(ref, app, Cmd(msg), root)
       })
     State(model, dom)
