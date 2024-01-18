@@ -37,7 +37,7 @@ fn view(model) {
     button([on_click(Dec)], [text(" - ")]),
     p([], [text(count)]),
     button([on_click(Inc)], [text(" + ")]),
-    ..list.range(0, model)
+    ..list.range(model, 10_000)
     |> list.map(fn(n) { p([], [text(int.to_string(n))]) })
   ])
 }

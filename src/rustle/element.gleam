@@ -157,7 +157,8 @@ fn morph_element(
     ) as b ->
       case o_tag == n_tag {
         True -> {
-          let children = morph_children(o_node, o_children, n_children, send)
+          let children =
+            morph_children(o_node, o_children, n_children, send, [])
           let attr = morph_attr(o_node, o_attr, n_attr, send)
           Element(o_node, o_tag, attr, children)
         }
@@ -185,22 +186,22 @@ fn morph_children(
   os: List(Element(a)),
   ns: List(Element(a)),
   send: fn(a) -> Nil,
+  acc: List(Element(a)),
 ) -> List(Element(a)) {
-  // TODO make tail recursive
   case os, ns {
-    [], [] -> []
+    [], [] -> list.reverse(acc)
     [], [n, ..ns] -> {
       let n = build_element(n)
       dom.append(parent, n.node)
-      [n, ..morph_children(parent, os, ns, send)]
+      morph_children(parent, os, ns, send, [n, ..acc])
     }
     [o, ..os], [] -> {
       dom.remove(parent, o.node)
-      morph_children(parent, os, ns, send)
+      morph_children(parent, os, ns, send, acc)
     }
     [o, ..os], [n, ..ns] -> {
       let n = morph_element(parent, o, n, send)
-      [n, ..morph_children(parent, os, ns, send)]
+      morph_children(parent, os, ns, send, [n, ..acc])
     }
   }
 }
@@ -211,5 +212,5 @@ pub fn update_dom(
   ns: List(Element(a)),
   send: fn(a) -> Nil,
 ) {
-  morph_children(root, os, ns, send)
+  morph_children(root, os, ns, send, [])
 }
