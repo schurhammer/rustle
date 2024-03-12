@@ -1,8 +1,8 @@
 import gleam/dynamic.{type Dynamic}
-import rustle/element as el
+import gleam/list
 import rustle/attr
 import rustle/dom.{type Node}
-import gleam/list
+import rustle/element as el
 
 pub type Attr(msg) {
   Attr(name: String, value: Dynamic)
@@ -119,11 +119,8 @@ fn morph_element(
         }
       }
 
-    Element(o_node, o_tag, o_attr, o_children), el.Element(
-      n_tag,
-      n_attr,
-      n_children,
-    ) as b ->
+    Element(o_node, o_tag, o_attr, o_children),
+      el.Element(n_tag, n_attr, n_children) as b ->
       case o_tag == n_tag {
         True -> {
           let children =

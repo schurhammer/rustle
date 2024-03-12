@@ -1,6 +1,7 @@
-import rustle/attr.{type Attr, Attr, Event}
-import gleam/string
+import gleam/function
 import gleam/list
+import gleam/string
+import rustle/attr.{type Attr, Attr, Event}
 
 pub type Element(msg) {
   Text(content: String)
@@ -11,6 +12,23 @@ fn attr_string(attr: Attr(a)) -> String {
   case attr {
     Attr(name, value) -> name <> "=" <> string.inspect(value)
     Event(name, _) -> name
+  }
+}
+
+pub fn map(element: Element(a), mapper: fn(a) -> b) -> Element(b) {
+  case element {
+    Text(content) -> Text(content)
+    Element(tag, attrs, children) -> {
+      let attrs = {
+        use attr <- list.map(attrs)
+        case attr {
+          Attr(name, value) -> Attr(name, value)
+          Event(name, value) -> Event(name, function.compose(value, mapper))
+        }
+      }
+      let children = list.map(children, map(_, mapper))
+      Element(tag, attrs, children)
+    }
   }
 }
 

@@ -1,43 +1,39 @@
 import gleam/int
-import gleam/list
-import rustle
-import rustle/element.{button, div, p, text}
+import rustle.{type Cmd}
 import rustle/attr.{on_click}
+import rustle/element.{type Element, button, div, p, text}
 
 pub fn main() {
   let app = rustle.App(init, update, view)
-  let assert Ok(send) = rustle.start(app, "[data-app]", Nil)
-  send(Inc)
-  send(Inc)
-  send(Inc)
-  send(Dec)
+  let assert Ok(_) = rustle.start(app, "[data-app]", Nil)
   Nil
 }
 
-fn init(_) {
-  #(0, rustle.None)
-}
+pub type Model =
+  Int
 
-type Msg {
+pub type Msg {
   Inc
   Dec
 }
 
-fn update(model, msg) {
+pub fn init(_) -> #(Model, Cmd(Msg)) {
+  #(0, rustle.None)
+}
+
+pub fn update(model: Model, msg: Msg) -> #(Model, Cmd(Msg)) {
   case msg {
     Inc -> #(model + 1, rustle.None)
     Dec -> #(model - 1, rustle.None)
   }
 }
 
-fn view(model) {
+pub fn view(model: Model) -> Element(Msg) {
   let count = int.to_string(model)
 
   div([], [
     button([on_click(Dec)], [text(" - ")]),
     p([], [text(count)]),
     button([on_click(Inc)], [text(" + ")]),
-    ..list.range(model, 10_000)
-    |> list.map(fn(n) { p([], [text(int.to_string(n))]) })
   ])
 }
